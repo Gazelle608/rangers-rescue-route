@@ -1,8 +1,8 @@
 """
 Level 2 — The Great Savannah
-Effective weight = time + risk.
-Must visit S1, S2, S3, S4 in any order between A and B.
-Brute-forces all 4! = 24 orderings, uses Dijkstra for each leg.
+Start: A | End: B | 18 nodes | Visit S1, S2, S3, S4 (any order)
+Effective edge weight = time + risk
+Brute-force all 4! = 24 orderings, Dijkstra for each leg.
 """
 import heapq
 import itertools
@@ -10,24 +10,24 @@ import json
 import os
 
 GRAPH = {
-    "A": [{"node": "P1", "time": 4, "risk": 0}, {"node": "P6", "time": 5, "risk": 2}],
-    "B": [{"node": "P5", "time": 4, "risk": 0}, {"node": "P12", "time": 4, "risk": 0}],
-    "S1": [{"node": "P3", "time": 4, "risk": 0}, {"node": "P4", "time": 4, "risk": 1}, {"node": "P9", "time": 5, "risk": 1}],
-    "S2": [{"node": "P7", "time": 4, "risk": 0}, {"node": "P8", "time": 5, "risk": 1}, {"node": "P10", "time": 5, "risk": 2}],
-    "S3": [{"node": "P1", "time": 4, "risk": 0}, {"node": "P2", "time": 4, "risk": 1}],
-    "S4": [{"node": "P4", "time": 5, "risk": 0}, {"node": "P5", "time": 4, "risk": 0}, {"node": "P10", "time": 7, "risk": 0}],
-    "P1": [{"node": "A", "time": 4, "risk": 0}, {"node": "S3", "time": 4, "risk": 0}],
-    "P2": [{"node": "S3", "time": 4, "risk": 1}, {"node": "P3", "time": 3, "risk": 0}],
-    "P3": [{"node": "P2", "time": 3, "risk": 0}, {"node": "S1", "time": 4, "risk": 0}],
-    "P4": [{"node": "S1", "time": 4, "risk": 1}, {"node": "S4", "time": 5, "risk": 0}],
-    "P5": [{"node": "S4", "time": 4, "risk": 0}, {"node": "B", "time": 4, "risk": 0}],
-    "P6": [{"node": "A", "time": 5, "risk": 2}, {"node": "P7", "time": 4, "risk": 0}],
-    "P7": [{"node": "P6", "time": 4, "risk": 0}, {"node": "S2", "time": 4, "risk": 0}, {"node": "P11", "time": 4, "risk": 2}],
-    "P8": [{"node": "S2", "time": 5, "risk": 1}, {"node": "P9", "time": 4, "risk": 2}],
-    "P9": [{"node": "P8", "time": 4, "risk": 2}, {"node": "S1", "time": 5, "risk": 1}],
-    "P10": [{"node": "S2", "time": 5, "risk": 2}, {"node": "S4", "time": 7, "risk": 0}],
-    "P11": [{"node": "P7", "time": 4, "risk": 2}, {"node": "P12", "time": 5, "risk": 1}],
-    "P12": [{"node": "P11", "time": 5, "risk": 1}, {"node": "B", "time": 4, "risk": 0}],
+    "A":  [{"node": "P1",  "time": 4, "risk": 0}, {"node": "P6",  "time": 5, "risk": 2}],
+    "B":  [{"node": "P5",  "time": 4, "risk": 0}, {"node": "P12", "time": 4, "risk": 0}],
+    "S1": [{"node": "P3",  "time": 4, "risk": 0}, {"node": "P4",  "time": 4, "risk": 1}, {"node": "P9",  "time": 5, "risk": 1}],
+    "S2": [{"node": "P7",  "time": 4, "risk": 0}, {"node": "P8",  "time": 5, "risk": 1}, {"node": "P10", "time": 5, "risk": 2}],
+    "S3": [{"node": "P1",  "time": 4, "risk": 0}, {"node": "P2",  "time": 4, "risk": 1}],
+    "S4": [{"node": "P4",  "time": 5, "risk": 0}, {"node": "P5",  "time": 4, "risk": 0}, {"node": "P10", "time": 7, "risk": 0}],
+    "P1": [{"node": "A",   "time": 4, "risk": 0}, {"node": "S3",  "time": 4, "risk": 0}],
+    "P2": [{"node": "S3",  "time": 4, "risk": 1}, {"node": "P3",  "time": 3, "risk": 0}],
+    "P3": [{"node": "P2",  "time": 3, "risk": 0}, {"node": "S1",  "time": 4, "risk": 0}],
+    "P4": [{"node": "S1",  "time": 4, "risk": 1}, {"node": "S4",  "time": 5, "risk": 0}],
+    "P5": [{"node": "S4",  "time": 4, "risk": 0}, {"node": "B",   "time": 4, "risk": 0}],
+    "P6": [{"node": "A",   "time": 5, "risk": 2}, {"node": "P7",  "time": 4, "risk": 0}],
+    "P7": [{"node": "P6",  "time": 4, "risk": 0}, {"node": "S2",  "time": 4, "risk": 0}, {"node": "P11", "time": 4, "risk": 2}],
+    "P8": [{"node": "S2",  "time": 5, "risk": 1}, {"node": "P9",  "time": 4, "risk": 2}],
+    "P9": [{"node": "P8",  "time": 4, "risk": 2}, {"node": "S1",  "time": 5, "risk": 1}],
+    "P10":[{"node": "S2",  "time": 5, "risk": 2}, {"node": "S4",  "time": 7, "risk": 0}],
+    "P11":[{"node": "P7",  "time": 4, "risk": 2}, {"node": "P12", "time": 5, "risk": 1}],
+    "P12":[{"node": "P11", "time": 5, "risk": 1}, {"node": "B",   "time": 4, "risk": 0}],
 }
 START, END = "A", "B"
 STOPS = ["S1", "S2", "S3", "S4"]
@@ -82,7 +82,7 @@ def solve():
             legs.append(path)
         if ok and total < best_cost:
             best_cost, best_legs, best_order = total, legs, seq
-    # Concatenate legs
+    # Concatenate legs (drop duplicated joint nodes)
     full = []
     for leg in best_legs:
         full.extend(leg if not full else leg[1:])
